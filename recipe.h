@@ -32,6 +32,8 @@ struct IngredientList {
     struct IngredientList* next_ingredient;
     Ingredient* curr_ingredient;
 }IngredientList;
+
+/* Add an ingredient to a list of ingredients */
 void pushback_ingredient(struct IngredientList* list, Ingredient* item) {
     if ((list->curr_ingredient && list->next_ingredient) == nullptr) //decide if our list is empty.
         list->curr_ingredient = item;
@@ -47,6 +49,8 @@ void pushback_ingredient(struct IngredientList* list, Ingredient* item) {
     }
     return;
 }
+
+/* Get the next item in a list of ingredients.  Supply the current item you wish to start from */
 struct IngredientList* next_ingredient(struct IngredientList* list) {
     assert(list->curr_ingredient != nullptr);  // sanity check. we should have an ingredient.
     if (list->next_ingredient != nullptr) {  //is there more than 1 ingredient in the list?
@@ -57,12 +61,16 @@ struct IngredientList* next_ingredient(struct IngredientList* list) {
     else
         return nullptr;
 }
+
+/* Heat any ingredient with the measure of TEMPERATURE to quantity of GOAL... undefined behavior if the item is already hotter! it will melt turn into plasma and eventually freeze as the float overflows over! */
 void heat_ingredient(Ingredient* ingredient, int goal) {
     /*farenheit scale for {int goal}*/
     assert(ingredient->measurement == TEMPERATURE); //we cant heat an item without temperature
     while (ingredient->quantity > (float)goal)
         ++ingredient->quantity;
 }
+
+/* Take an item, heat it slowly, and wait for it to dehydrate! */
 void dehydrate_item(Ingredient* bread) {
     /*
         Bit of a misnomer here, we will not be toasting the bread.
@@ -78,12 +86,15 @@ void dehydrate_item(Ingredient* bread) {
         bread->measurement = tmp_m;
     bread->quantity = tmp_q;
 }
+/* for eveyr slice of bread, turn it into 10000 breadcrumbs*/
 void make_breadcrubs_from_toasted_bread(Ingredient* bread) {
     assert(bread->measurement == SLICES);  //we want to start with slices of bread!
     float num_crumbs = 10000 * bread->quantity;
     bread->measurement = PIECES;
     bread->quantity = num_crumbs;
 }
+
+/* Using an IngredientList, mix all ingredients form that list, and produce a new Ingredient.  The new ingredient will be stored in the new_ingredient IN_OUT varioable*/
 void mix_ingredients(struct IngredientList* list, Ingredient* new_ingredient) {
     struct IngredientList* tmp = next_ingredient(list);
     MEMZERO(new_ingredient, sizeof(Ingredient));
