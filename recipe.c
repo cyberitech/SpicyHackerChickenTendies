@@ -56,8 +56,8 @@ int main(void)
 
     Ingredient batter;
     Ingredient breading;
-    mix_ingredients(&dry_ingredients, &breading); // mixing ingredients takes an IngredientList, and mixes all items from that list to produce a new Ingredient.. in this case, the dry_ingredients are mixed to produce the breading
-    mix_ingredients(&wet_ingredients, &batter);
+    mix_ingredients(&dry_ingredients, &breading); // the dry_ingredients are mixed to produce the breading
+    mix_ingredients(&wet_ingredients, &batter); // the wet ingredients are mixe to produce the batter
 
     struct IngredientList chicken_to_be_breaded;
     MEMZERO(&chicken_to_be_breaded, sizeof(IngredientList));
@@ -66,7 +66,7 @@ int main(void)
     pushback_ingredient(&chicken_to_be_breaded, &breading);
 
     Ingredient battered_chicken;
-    mix_ingredients(&chicken_to_be_breaded, &battered_chicken);
+    mix_ingredients(&chicken_to_be_breaded, &battered_chicken); //the chicken_to_be_breaded (contining the batter and breading) is mixed to produce battered_chicken
 
     heat_ingredient(&i_seven, 0x15e);
     struct IngredientList battered_chicken_to_be_fried;
@@ -75,7 +75,7 @@ int main(void)
     pushback_ingredient(&battered_chicken_to_be_fried, &i_seven);
 
     Ingredient hacker_chicken_tendies;
-    mix_ingredients(&battered_chicken_to_be_fried, &hacker_chicken_tendies);
+    mix_ingredients(&battered_chicken_to_be_fried, &hacker_chicken_tendies); // the battered_chicken_to_be_fried, which contains battered_chicken and the hot oil, are mixed to product the chicken tendies!
     printf("\n*****The Spicy Hacker Chicken Tendies are cooking! Please be patient!!*****\n\n  .. (0_0)     \n\n");
     do_sleep(0xa * 0x3c);  //10 minutes cook time should work!
     printf("\n*****The Spicy Hacker Chicken Tendies are ready!*****\n\n    ! \(^_^)/ !    \n\n");
