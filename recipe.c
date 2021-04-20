@@ -56,7 +56,7 @@ int main(void)
 
     Ingredient batter;
     Ingredient breading;
-    mix_ingredients(&dry_ingredients, &breading);
+    mix_ingredients(&dry_ingredients, &breading); // mixing ingredients takes an IngredientList, and mixes all items from that list to produce a new Ingredient.. in this case, the dry_ingredients are mixed to produce the breading
     mix_ingredients(&wet_ingredients, &batter);
 
     struct IngredientList chicken_to_be_breaded;
