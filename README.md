@@ -11,4 +11,4 @@ Additionally, you must show them the license before they are served dinner so th
 This recipe is without warranty and may or may not work, nourish, feed, or taste as intended.
 
 
-Currently there are no plans to port the codebase to spoken English.  
+Currently there are no plans to port the recipe to anything other than C 
