@@ -35,32 +35,29 @@ struct IngredientList {
 
 /* Add an ingredient to a list of ingredients */
 void pushback_ingredient(struct IngredientList* list, Ingredient* item) {
-    if ((list->curr_ingredient && list->next_ingredient) == nullptr) //decide if our list is empty.
+    if ((list->curr_ingredient || list->next_ingredient) == nullptr) //decide if our list is empty.
         list->curr_ingredient = item;
     else {
-        struct IngredientList* curr_item = list->next_ingredient;
-        while (curr_item != nullptr)  //iterate thru ingredients until we get an empty item
-            curr_item = list->next_ingredient;
+        struct IngredientList* curr_item = list;
+        struct IngredientList* prev_item = list;
+        do   //iterate thru ingredients until we get an empty item
+        {
+            prev_item = curr_item;
+            curr_item = curr_item->next_ingredient;
+
+        } while (curr_item != nullptr);
+
         /*we have reached the end of our ingredient list.  add one to it*/
-        curr_item = (struct IngredientList*)malloc(sizeof(Ingredient));
+        curr_item = (struct IngredientList*)malloc(sizeof(IngredientList));
         assert(curr_item != 0);
         assert(MEMZERO(curr_item, sizeof(IngredientList)) != nullptr);
         curr_item->curr_ingredient = item;
+        curr_item->next_ingredient = nullptr;
+        prev_item->next_ingredient = curr_item;
     }
     return;
 }
 
-/* Get the next item in a list of ingredients.  Supply the current item you wish to start from */
-struct IngredientList* next_ingredient(struct IngredientList* list) {
-    assert(list->curr_ingredient != nullptr);  // sanity check. we should have an ingredient.
-    if (list->next_ingredient != nullptr) {  //is there more than 1 ingredient in the list?
-        struct IngredientList* next_ingredient = list->next_ingredient;
-        assert(next_ingredient->curr_ingredient != nullptr);  //sanity check again.  the next ingredient should not be empty.
-            return next_ingredient;
-    }
-    else
-        return nullptr;
-}
 
 /* Heat any ingredient with the measure of TEMPERATURE to quantity of GOAL... undefined behavior if the item is already hotter! it will melt turn into plasma and eventually freeze as the float overflows over! */
 void heat_ingredient(Ingredient* ingredient, int goal) {
@@ -81,9 +78,8 @@ void dehydrate_item(Ingredient* bread) {
     bread->measurement = TEMPERATURE;
     bread->quantity = 0x44; /* assumption bread should start at room temp, Farenheit scale.  actual starting temp notimportant though. */
     heat_ingredient(bread, 200);
-    printf("\n*****Please wait while the bread is dehydrated*****\n\n   (0_0) ..    \n\n");
     do_sleep(tmp_q * 5 * 60); //5 minutes per item to dehydrate... assuming slices of bread, this should be good, give    or take a few minutes
-        bread->measurement = tmp_m;
+    bread->measurement = tmp_m;
     bread->quantity = tmp_q;
 }
 /* for eveyr slice of bread, turn it into 10000 breadcrumbs*/
@@ -94,27 +90,38 @@ void make_breadcrubs_from_toasted_bread(Ingredient* bread) {
     bread->quantity = num_crumbs;
 }
 
-/* Using an IngredientList, mix all ingredients form that list, and produce a new Ingredient.  The new ingredient will be stored in the new_ingredient IN_OUT varioable*/
-void mix_ingredients(struct IngredientList* list, Ingredient* new_ingredient) {
-    struct IngredientList* tmp = next_ingredient(list);
-    MEMZERO(new_ingredient, sizeof(Ingredient));
-    size_t count = 0;
-    while (tmp != nullptr) {  //count how many ingredients we will bemixing
-        ++count;
-        tmp = next_ingredient(tmp);
-    }
-    new_ingredient->name = (char*)malloc(sizeof(char*) * count);// an array of ingredient names
-    new_ingredient->measurement = PIECES;
-    new_ingredient->quantity = 0;
-    count = 0;
-    while (tmp != nullptr) {
-        char* ingredient_name = (char*)malloc(strlen(tmp->curr_ingredient->name));
-        memcpy(ingredient_name, tmp->curr_ingredient->name, strlen(tmp->curr_ingredient->name)); //get ingredient name we are mixing
-            new_ingredient->name = ingredient_name;
-        tmp->curr_ingredient->quantity = 0;
-        ++new_ingredient->quantity;
+/* Using an IngredientList, mix all ingredients form that list, and produce a new Ingredient.  The single new ingredient, the result of mixing all ingredients in the list, will be returned*/
+Ingredient mix_ingredients(struct IngredientList* list) {
+    Ingredient new_ingredient = { 0 };
+    struct IngredientList* tmp = list;
+
+    size_t ingredients_count = 0;
+    size_t len_components = 0;
+    while (tmp != nullptr) {  //count how many ingredients we will be mixing
+        ++ingredients_count;
+        len_components += strlen(tmp->curr_ingredient->name);
         tmp = tmp->next_ingredient;
     }
-    return;
+    if (ingredients_count)  {  //if its only a single ingredient, then nothing to mix!!
+        size_t len_new_name = len_components + (strlen(" + ") * ingredients_count) +1;  //our new ingredient will have naming scheme "[ingredient a] + [ingredient b] + ..."
+        new_ingredient.name = (char*)malloc(sizeof(char) * len_new_name);// reserve mem for the new name
+        MEMZERO(new_ingredient.name, len_new_name);
+        new_ingredient.measurement = PIECES;  // the new ingredient produced by a mixture of other ingredients will be described as having n-pieces, where n is the number of ingredients that were mixed to create it
+        new_ingredient.quantity = 0;
+
+        tmp = list;
+        size_t ingredients_mixed = 0;
+        while (tmp != nullptr) {
+            
+            tmp->curr_ingredient->quantity = 0;  //after weve mixed in the ingredient, we have no more left!! its now part of a whole new mixture of ingredients!!
+            ++new_ingredient.quantity;  // our new mixture has 1 more ingredient in its mixture
+            strcat(new_ingredient.name, tmp->curr_ingredient->name);  //copy the new ingredient name to the new ingredient mixture
+            ++ingredients_mixed;
+            if (ingredients_mixed < ingredients_count )
+                strcat(new_ingredient.name, " + ");
+            tmp = tmp->next_ingredient;  //advance to next ingredient on list
+        }
+    }
+    return new_ingredient;
 }
 #endif
