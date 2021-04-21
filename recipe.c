@@ -81,6 +81,6 @@ int main(void)
     Ingredient hacker_chicken_tendies=mix_ingredients(&battered_chicken_to_be_fried); // the battered_chicken_to_be_fried, which contains battered_chicken and the hot oil, are mixed to product the chicken tendies!
     printf("\n*****The Spicy Hacker Chicken Tendies are cooking! Please be patient!!*****\n\n  .. (0_0)     \n\n");
     do_sleep(0xa * 0x3c);  //10 minutes cook time should work!
-    printf("\n*****The Spicy Hacker Chicken Tendies are ready!*****\n\n    ! \(^_^)/ !    \n\n");
+    printf("\n*****The Spicy Hacker Chicken Tendies are ready!*****\n\n    ! \\(^_^)/ !    \n\n");
     return 0;
 }
