@@ -55,7 +55,7 @@ struct IngredientList {
 /* The ingredient is added in a FIFO-style operation */
 /*  Thus, new ingredients will naturally be written to the end of our list, and not simply 'pushed' on top  */
 /*  Afterall, this is an IngredientList we are using, not an IngredientStack or an IngredientHeap */
-inline void pushback_ingredient(struct IngredientList* list, const Ingredient* item) {
+inline void pushback_ingredient(struct IngredientList* list, Ingredient* item) {
     if ((list->curr_ingredient || list->next_ingredient) == nullptr) //decide if our list is empty.
         list->curr_ingredient = item;
     else {
