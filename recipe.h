@@ -1,3 +1,12 @@
+/*
+    FILE: 
+       recipe.h
+    DESCRIPTION:  
+       Header and operation definitions of standard cooking procedures.  
+       Can be used by any recipe with some simply porting.  
+       There are a few assumptions, such as the developer will be dehydrating only bread.
+*/
+
 #ifndef RECIPE_HACKER_TENDIES_H
 #define  RECIPE_HACKER_TENDIES_H
 #include <stdlib.h>
@@ -13,6 +22,10 @@
 #include <string.h>
 #define nullptr NULL
 #define MEMZERO(obj,sz) (memset(obj,0,sz))
+
+
+/*  This can be defined as needed.  if additional metrics need to be added for future use such as (for exampe) radians, hogsheds, miner's inches or microfortnights, they can be added here */
+/*  only byte indexes 0-7 are utilized, leaving indexes 8-31 (8-63 if compiling on g++ !!) reserved for future use */
 typedef enum {
     GRAMS = 0b1,
     CUPS = 0b10,
@@ -23,18 +36,26 @@ typedef enum {
     PIECES = 0b1000000,
     TEMPERATURE = 0b10000000
 }MEASURE;
+
+/*  A single ingredient.  An ingredient is characterized by its name, metric of measurement (ie cups, grams, etc), and the magnitude of that measurement metric  */
 typedef struct {
     char* name;
     MEASURE measurement;
     float   quantity;
 }Ingredient;
+
+/*  Our struct which will hold an ingredient list would more accuratley be defined as a "Singly-Linked List of Ingredients" */
+/*  For ease, we will simply name it an IngredientList  */
 struct IngredientList {
     struct IngredientList* next_ingredient;
     Ingredient* curr_ingredient;
 }IngredientList;
 
 /* Add an ingredient to a list of ingredients */
-void pushback_ingredient(struct IngredientList* list, Ingredient* item) {
+/* The ingredient is added in a FIFO-style operation */
+/*  Thus, new ingredients will naturally be written to the end of our list, and not simply 'pushed' on top  */
+/*  Afterall, this is an IngredientList we are using, not an IngredientStack or an IngredientHeap */
+inline void pushback_ingredient(struct IngredientList* list, const Ingredient* item) {
     if ((list->curr_ingredient || list->next_ingredient) == nullptr) //decide if our list is empty.
         list->curr_ingredient = item;
     else {
@@ -60,38 +81,43 @@ void pushback_ingredient(struct IngredientList* list, Ingredient* item) {
 
 
 /* Heat any ingredient with the measure of TEMPERATURE to quantity of GOAL... undefined behavior if the item is already hotter! it will melt turn into plasma and eventually freeze as the float overflows over! */
-void heat_ingredient(Ingredient* ingredient, int goal) {
+inline void heat_ingredient(Ingredient* ingredient, const int goal) {
     /*farenheit scale for {int goal}*/
     assert(ingredient->measurement == TEMPERATURE); //we cant heat an item without temperature
-    while (ingredient->quantity > (float)goal)
-        ++ingredient->quantity;
+    if (ingredient->quantity >= goal)  //is it already too hot?  if so, then lets cool it down so that it doesnt burn any of the food
+        while (ingredient->quantity >= goal)
+            --ingredient->quantity;
+    else   //heat up the ingredient!
+        while (ingredient->quantity < (float)goal)
+            ++ingredient->quantity;
 }
 
 /* Take an item, heat it slowly, and wait for it to dehydrate! */
-void dehydrate_item(Ingredient* bread) {
-    /*
-        Bit of a misnomer here, we will not be toasting the bread.
-            we will actually be dehydrating it.  WE want it dry and crumbly.
-    */
+inline void dehydrate_item(Ingredient* bread) {
     MEASURE tmp_m = bread->measurement;
     float tmp_q = bread->quantity;
     bread->measurement = TEMPERATURE;
     bread->quantity = 0x44; /* assumption bread should start at room temp, Farenheit scale.  actual starting temp notimportant though. */
     heat_ingredient(bread, 200);
-    do_sleep(tmp_q * 5 * 60); //5 minutes per item to dehydrate... assuming slices of bread, this should be good, give    or take a few minutes
+    /*  5 minutes per item to dehydrate... assuming slices of bread, this should be good, give or take a few minutes  */
+    /*  If you are trying to dehydrate something besides slices of bread, you should adjust the following line accordingly  */
+    do_sleep(tmp_q * 5 * 60);
     bread->measurement = tmp_m;
     bread->quantity = tmp_q;
 }
-/* for eveyr slice of bread, turn it into 10000 breadcrumbs*/
-void make_breadcrubs_from_toasted_bread(Ingredient* bread) {
+
+/* for every slice of bread, turn it into 10000 breadcrumbs*/
+/* Technically, this will turn slices of anything into 10000 bits, it doesnt need to strictly be bread.  */
+/* It may be a bad asumption, but as a design choice im assuming you will only make breadcrumbs with this function */
+inline void make_breadcrubs_from_toasted_bread(Ingredient* bread) {
     assert(bread->measurement == SLICES);  //we want to start with slices of bread!
     float num_crumbs = 10000 * bread->quantity;
     bread->measurement = PIECES;
     bread->quantity = num_crumbs;
 }
 
-/* Using an IngredientList, mix all ingredients form that list, and produce a new Ingredient.  The single new ingredient, the result of mixing all ingredients in the list, will be returned*/
-Ingredient mix_ingredients(struct IngredientList* list) {
+/* Using an IngredientList, mix all ingredients form that list, and produce a new Ingredient.  The single new ingredient, the result of mixing all ingredients in the list, will be returned */
+inline Ingredient mix_ingredients(struct IngredientList* list) {
     Ingredient new_ingredient = { 0 };
     struct IngredientList* tmp = list;
 
