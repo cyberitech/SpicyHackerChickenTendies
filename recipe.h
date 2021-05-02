@@ -1,9 +1,10 @@
+#pragma once
 /*
-    FILE: 
+    FILE:
        recipe.h
-    DESCRIPTION:  
-       Header and operation definitions of standard cooking procedures.  
-       Can be used by any recipe with some simply porting.  
+    DESCRIPTION:
+       Header and operation definitions of standard cooking procedures.
+       Can be used by any recipe with some simply porting.
        There are a few assumptions, such as the developer will be dehydrating only bread.
 */
 
@@ -55,7 +56,7 @@ struct IngredientList {
 /* The ingredient is added in a FIFO-style operation */
 /*  Thus, new ingredients will naturally be written to the end of our list, and not simply 'pushed' on top  */
 /*  Afterall, this is an IngredientList we are using, not an IngredientStack or an IngredientHeap */
-inline void pushback_ingredient(struct IngredientList* list, Ingredient* item) {
+inline void add_ingredient_to_list(struct IngredientList* list, Ingredient* item) {
     if ((list->curr_ingredient || list->next_ingredient) == nullptr) //decide if our list is empty.
         list->curr_ingredient = item;
     else {
@@ -120,7 +121,7 @@ inline void make_breadcrubs_from_toasted_bread(Ingredient* bread) {
 inline Ingredient mix_ingredients(struct IngredientList* list) {
     Ingredient new_ingredient = { 0 };
     struct IngredientList* tmp = list;
-
+    struct IngredientList* prev;
     size_t ingredients_count = 0;
     size_t len_components = 0;
     while (tmp != nullptr) {  //count how many ingredients we will be mixing
@@ -128,8 +129,8 @@ inline Ingredient mix_ingredients(struct IngredientList* list) {
         len_components += strlen(tmp->curr_ingredient->name);
         tmp = tmp->next_ingredient;
     }
-    if (ingredients_count)  {  //if its only a single ingredient, then nothing to mix!!
-        size_t len_new_name = len_components + (strlen(" + ") * ingredients_count) +1;  //our new ingredient will have naming scheme "[ingredient a] + [ingredient b] + ..."
+    if (ingredients_count) {  //if its only a single ingredient, then nothing to mix!!
+        size_t len_new_name = len_components + (strlen(" + ") * ingredients_count) + 1;  //our new ingredient will have naming scheme "[ingredient a] + [ingredient b] + ..."
         new_ingredient.name = (char*)malloc(sizeof(char) * len_new_name);// reserve mem for the new name
         MEMZERO(new_ingredient.name, len_new_name);
         new_ingredient.measurement = PIECES;  // the new ingredient produced by a mixture of other ingredients will be described as having n-pieces, where n is the number of ingredients that were mixed to create it
@@ -138,14 +139,16 @@ inline Ingredient mix_ingredients(struct IngredientList* list) {
         tmp = list;
         size_t ingredients_mixed = 0;
         while (tmp != nullptr) {
-            
+
             tmp->curr_ingredient->quantity = 0;  //after weve mixed in the ingredient, we have no more left!! its now part of a whole new mixture of ingredients!!
             ++new_ingredient.quantity;  // our new mixture has 1 more ingredient in its mixture
             strcat(new_ingredient.name, tmp->curr_ingredient->name);  //copy the new ingredient name to the new ingredient mixture
             ++ingredients_mixed;
-            if (ingredients_mixed < ingredients_count )
+            if (ingredients_mixed < ingredients_count)
                 strcat(new_ingredient.name, " + ");
+            free(tmp->curr_ingredient->name);
             tmp = tmp->next_ingredient;  //advance to next ingredient on list
+
         }
     }
     return new_ingredient;
